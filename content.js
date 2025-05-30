@@ -62,8 +62,52 @@ if (document.readyState === 'loading') {
     addPilayButton();
 }
 
+// Add PILAY buttons to episode list on /episodes/ page
+function addPilayButtonsToEpisodes() {
+    if (!/\/episodes/.test(window.location.pathname)) return;
+    const imdbId = getImdbId();
+    if (!imdbId) return;
+    // Select all episode title divs
+    const episodeTitles = document.querySelectorAll('div.ipc-title__text.ipc-title__text--reduced');
+    episodeTitles.forEach(titleDiv => {
+        // Avoid adding multiple buttons
+        if (titleDiv.parentElement.querySelector('.pilay-episode-btn')) return;
+        // Extract S1.E1 (season and episode)
+        const match = titleDiv.textContent.match(/S(\d+)\.E(\d+)/i);
+        if (!match) return;
+        const season = match[1];
+        const episode = match[2];
+        // Create button
+        const btn = document.createElement('button');
+        btn.className = 'pilay-episode-btn';
+        btn.innerText = 'PILAY';
+        btn.style.background = '#f5c518';
+        btn.style.color = '#000';
+        btn.style.fontWeight = 'bold';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '4px';
+        btn.style.marginLeft = '12px';
+        btn.style.padding = '4px 10px';
+        btn.style.cursor = 'pointer';
+        btn.style.fontSize = '0.95rem';
+        btn.style.verticalAlign = 'middle';
+        btn.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+        btn.onclick = function(e) {
+            e.stopPropagation();
+            const url = `https://player.smashy.stream/tv/${imdbId}?s=${season}&e=${episode}`;
+            window.open(url, '_blank');
+        };
+        // Insert button after the title text
+        titleDiv.parentElement.appendChild(btn);
+    });
+}
+
 // Also observe for SPA navigation (IMDB uses client-side routing)
 const observer = new MutationObserver(() => {
     addPilayButton();
+    addPilayButtonsToEpisodes();
 });
-observer.observe(document.body, { childList: true, subtree: true }); 
+observer.observe(document.body, { childList: true, subtree: true });
+
+// Also run once on load
+addPilayButtonsToEpisodes(); 
